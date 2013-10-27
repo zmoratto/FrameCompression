@@ -1,0 +1,5 @@
+*.o
+*~
+compress
+data
+data_big
