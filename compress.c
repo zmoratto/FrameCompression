@@ -7,8 +7,10 @@
 #include <libavutil/timestamp.h>
 #include <libavformat/avformat.h>
 
+#include <rejigger.h>
+
 #define STREAM_FRAME_RATE 30 /* 30 images/s */
-#define STREAM_PIX_FMT AV_PIX_FMT_YUV420P /* We only fill Y */
+#define STREAM_PIX_FMT AV_PIX_FMT_YUVJ420P /* We only fill Y */
 #define WIDTH 640
 #define HEIGHT 896
 
@@ -47,6 +49,8 @@ static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
     c->codec_id = codec_id;
 
     c->bit_rate = 0;
+    c->qmin = 0;
+    c->qmax = 30;
     /* Resolution must be a multiple of two. */
     c->width    = WIDTH;
     c->height   = HEIGHT;
@@ -110,7 +114,7 @@ int main( int argc, char ** argv ) {
   int samples_linesize;
   AVDictionary *dictionary = NULL;
 
-  static const char input_name[] = "data/m%07d.pgm";
+  static const char input_name[] = "data/m0000%03d.pgm";
   static const char output_name[] = "test.mkv";
 
   // Register all formats and codecs
@@ -171,6 +175,7 @@ int main( int argc, char ** argv ) {
 
   // Open Video
   av_dict_set(&dictionary, "crf", "100", 0);
+  av_dict_set(&dictionary, "threads", "auto", 0);
   codec_ctx = out_video_st->codec;
   ret = avcodec_open2(codec_ctx, out_video_codec, &dictionary );
   if ( ret < 0 ) {
@@ -278,46 +283,63 @@ int main( int argc, char ** argv ) {
         /* pgm_save(frame->data[0], frame->linesize[0], */
         /*          in_video_codec_ctx->width, */
         /*          in_video_codec_ctx->height, filename ); */
+        rejigger_small_frame( in_frame, out_frame );
 
-        // DEBUG PUT IN GRAYSCALE on first line
-        for ( i = 0; i < 256; i++ ) {
-          in_frame->data[0][i] = i;
-        }
-
-        /* for ( i = 0; i < 256; i++ ) { */
-        /*   printf("%d -> %d %d %d\n", in_frame->data[0][i], out_frame->data[0][i], out_frame->data[1][i/2], out_frame->data[2][i/2] ); */
-        /* } */
-
-        // Attempting to copy the frame with out using sws_scale
-        for ( i = 0; i < HEIGHT-32; i++ ) {
-          memcpy(out_frame->data[0]+out_frame->linesize[0]*i,
-                 in_frame->data[0]+in_frame->linesize[0]*(i+32),
-                 WIDTH);
-        }
-
-        // Write video frame
-        AVPacket out_pkt = {0};
-        av_init_packet(&out_pkt);
-        ret = avcodec_encode_video2(out_video_st->codec, &out_pkt, out_frame, &got_packet);
-        if ( ret < 0 ) {
-          fprintf(stderr, "Error encoding video frame: %s\n", av_err2str(ret));
-          exit(1);
-        }
-        out_frame->pts += av_rescale_q(1, out_video_st->codec->time_base, out_video_st->time_base);
-
-        // Size zero means image was buffered for p or b frames
-        if ( !ret && got_packet && out_pkt.size ) {
-          out_pkt.stream_index = out_video_st->index;
-          ret = av_interleaved_write_frame(out_fmt_ctx, &out_pkt);
-          if ( ret != 0 ) {
-            fprintf(stderr, "Error while writing video frame: %s\n", av_err2str(ret));
+        { // Write video frame
+          AVPacket out_pkt = {0};
+          av_init_packet(&out_pkt);
+          ret = avcodec_encode_video2(out_video_st->codec, &out_pkt, out_frame, &got_packet);
+          if ( ret < 0 ) {
+            fprintf(stderr, "Error encoding video frame: %s\n", av_err2str(ret));
             exit(1);
           }
+          out_frame->pts += av_rescale_q(1, out_video_st->codec->time_base, out_video_st->time_base);
+
+          // Size zero means image was buffered for p or b frames
+          if ( !ret && got_packet && out_pkt.size ) {
+            out_pkt.stream_index = out_video_st->index;
+            ret = av_interleaved_write_frame(out_fmt_ctx, &out_pkt);
+            if ( ret != 0 ) {
+              fprintf(stderr, "Error while writing video frame: %s\n", av_err2str(ret));
+              exit(1);
+            }
+          }
+        }
+
+        { // Write audio packet
+          AVPacket out_pkt = { 0 };
+          AVFrame *aframe = avcodec_alloc_frame();
+          av_init_packet(&out_pkt);
+          codec_ctx = out_audio_st->codec;
+          for (i = 0; i < 32; i++ ) {
+            memcpy(samples_data[0]+i*640,in_frame->data[0] + i * in_frame->linesize[0], 640);
+          }
+          aframe->nb_samples = 32 * 640;
+          avcodec_fill_audio_frame(aframe, codec_ctx->channels,
+                                   codec_ctx->sample_fmt, samples_data[0], samples_linesize, 0 );
+          ret = avcodec_encode_audio2(codec_ctx, &out_pkt, aframe, &got_packet);
+          if ( ret < 0 ) {
+            fprintf(stderr, "Error encoding audio frame: %s\n", av_err2str(ret));
+            exit(1);
+          }
+
+          if (got_packet) {
+            out_pkt.stream_index = out_audio_st->index;
+            ret = av_interleaved_write_frame(out_fmt_ctx, &out_pkt);
+            if ( ret != 0 ) {
+              fprintf(stderr, "Error while writing audio frame: %s\n", av_err2str(ret));
+              exit(1);
+            }
+          } else {
+            fprintf(stderr, "Didn't get audio packet?\n");
+          }
+          avcodec_free_frame(&aframe);
         }
 
         printf("in_video_frame n:%d coded_n:%d pts:%s\r",
                in_video_frame_count++, out_frame->coded_picture_number,
                av_ts2timestr(out_frame->pts, &codec_ctx->time_base));
+        fflush(stdout);
       }
     }
 
