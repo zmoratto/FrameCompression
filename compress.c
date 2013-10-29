@@ -14,6 +14,8 @@
 #define WIDTH 640
 #define HEIGHT 896
 
+static int qmax_constant = 0;
+
 /* Add an output stream. */
 static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
                             enum AVCodecID codec_id)
@@ -50,7 +52,7 @@ static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
 
     c->bit_rate = 0;
     c->qmin = 0;
-    c->qmax = 30;
+    c->qmax = qmax_constant;
     /* Resolution must be a multiple of two. */
     c->width    = WIDTH;
     c->height   = HEIGHT;
@@ -117,10 +119,14 @@ int main( int argc, char ** argv ) {
   static const char output_name[] = "test.mkv";
 
   // Check the input
-  if ( argc != 2 ) {
-    fprintf(stderr,"Missing input argument\n\t%s <input pgms,blah%%07d.pgm>\n",
+  if ( argc != 2 && argc != 3 ) {
+    fprintf(stderr,"Missing input argument\n\t%s <input pgms,blah%%07d.pgm> <optional qmax number>\n",
             argv[0] );
     exit(1);
+  }
+
+  if ( argc == 3 ) {
+    sscanf(argv[2],"%d",&qmax_constant);
   }
 
   // Register all formats and codecs

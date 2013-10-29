@@ -1,6 +1,6 @@
 BREWDIR=/Users/zmoratto/homebrew
 
-CFLAGS += -g -O0 -Wall -I$(BREWDIR)/include -I$(PWD)
+CFLAGS += -g -O3 -Wall -I$(BREWDIR)/include -I$(PWD)
 
 LDFLAGS += -L$(BREWDIR)/lib -lavcodec -lavfilter -lavformat -lavutil
 
