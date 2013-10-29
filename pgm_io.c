@@ -10,8 +10,8 @@ void skip_comment( FILE* f ) {
   }
 }
 
-void pgm_save(unsigned char *buf, int wrap, int xsize, int ysize,
-                     char *filename) {
+void pgm_save(uint8_t *buf, int wrap, int xsize, int ysize,
+              char *filename) {
   FILE *f;
   int i;
 
@@ -23,7 +23,7 @@ void pgm_save(unsigned char *buf, int wrap, int xsize, int ysize,
 }
 
 void pgm_read(char *filename, uint8_t *buf, int buf_len, int* xsize, int* ysize
-                     ) {
+              ) {
   // Reads a PGM file into buffer above
   FILE *f;
   int i, depth;

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-void pgm_save(unsigned char *buf, int wrap, int xsize, int ysize,
+void pgm_save(uint8_t *buf, int wrap, int xsize, int ysize,
               char *filename);
 
 void pgm_read(char *filename, uint8_t *buf, int buf_len,

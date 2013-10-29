@@ -39,7 +39,7 @@ int main( int argc, char **argv ) {
       ptr = buf3 + y*xsize1 + x;
       if ( diff == 0 ) {
         *ptr = 0;
-      } else if ( diff == 1 ) {
+      } else if ( diff < 3 ) {
         *ptr = 128;
       } else {
         *ptr = 255;
@@ -51,7 +51,7 @@ int main( int argc, char **argv ) {
   pgm_save(buf3, xsize1, xsize1, ysize1,
            "comparison.pgm" );
 
-  printf("%lu\t%f%%\n", (long unsigned int)dn_diff_count, (double)(dn_diff_count)/((double)(xsize1*ysize1)/100.0));
+  printf("%lu\t%f%%\n", (long unsigned int)dn_diff_count, (double)(dn_diff_count)/((double)(xsize1*ysize1*256)/100.0));
 
   // Cleanup
   free( buf1 );

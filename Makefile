@@ -12,7 +12,7 @@ all: compress compare_pgm decompress
 compress : compress.o rejigger.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-decompress : decompress.o rejigger.o
+decompress : decompress.o rejigger.o pgm_io.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 compare_pgm : compare_pgm.o pgm_io.o
