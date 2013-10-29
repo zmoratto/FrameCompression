@@ -2,7 +2,7 @@ BREWDIR=/Users/zmoratto/homebrew
 
 CFLAGS += -g -O0 -Wall -I$(BREWDIR)/include
 
-LDFLAGS += -L$(BREWDIR)/lib -lavutil -lavcodec -lavformat -lavutil
+LDFLAGS += -L$(BREWDIR)/lib -lavcodec -lavfilter -lavformat -lavutil
 
 %.o : %.cc
 	$(CC) -c -o $@ $< $(CFLAGS)
