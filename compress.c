@@ -86,7 +86,7 @@ static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
 }
 
 int main( int argc, char ** argv ) {
-  int xsize, ysize, i, got_frame, got_packet, ret;
+  int i, got_frame, got_packet, ret, got_av_output;
 
   // Used by AVFormat to load up our input stream
   AVOutputFormat *out_fmt;
@@ -294,7 +294,7 @@ int main( int argc, char ** argv ) {
         { // Write video frame
           AVPacket out_pkt = {0};
           av_init_packet(&out_pkt);
-          ret = avcodec_encode_video2(out_video_st->codec, &out_pkt, out_frame, &got_packet);
+          ret = avcodec_encode_video2(out_video_st->codec, &out_pkt, out_frame, &got_av_output);
           if ( ret < 0 ) {
             fprintf(stderr, "Error encoding video frame: %s\n", av_err2str(ret));
             exit(1);
@@ -302,7 +302,7 @@ int main( int argc, char ** argv ) {
           out_frame->pts += av_rescale_q(1, out_video_st->codec->time_base, out_video_st->time_base);
 
           // Size zero means image was buffered for p or b frames
-          if ( !ret && got_packet && out_pkt.size ) {
+          if ( !ret && got_av_output && out_pkt.size ) {
             out_pkt.stream_index = out_video_st->index;
             ret = av_interleaved_write_frame(out_fmt_ctx, &out_pkt);
             if ( ret != 0 ) {
@@ -352,6 +352,30 @@ int main( int argc, char ** argv ) {
 
     av_free_packet(&in_pkt);
   }
+
+  // finish up the delayed frames
+  for ( got_av_output = 1; got_av_output;  ) {
+    AVPacket out_pkt = {0};
+    av_init_packet(&out_pkt);
+    ret = avcodec_encode_video2(out_video_st->codec, &out_pkt, NULL, &got_av_output);
+    if ( ret < 0 ) {
+      fprintf(stderr, "Error encoding frame\n");
+      exit(1);
+    }
+    out_frame->pts += av_rescale_q(1, out_video_st->codec->time_base, out_video_st->time_base);
+
+
+    if ( got_av_output ) {
+      out_pkt.stream_index = out_video_st->index;
+      ret = av_interleaved_write_frame(out_fmt_ctx, &out_pkt);
+      if ( ret != 0 ) {
+        fprintf(stderr, "Error while writing video frame: %s\n", av_err2str(ret));
+        exit(1);
+      }
+      printf("Wrote another packet\n");
+    }
+  }
+
   av_write_trailer(out_fmt_ctx);
   printf("\n");
 
