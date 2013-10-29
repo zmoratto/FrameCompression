@@ -1,5 +1,10 @@
 *.o
 *~
 compress
+compare_pgm
 data
 data_big
+*.bz2
+*.mkv
+*.pgm
+*.log
