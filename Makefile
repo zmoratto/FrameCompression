@@ -7,9 +7,12 @@ LDFLAGS += -L$(BREWDIR)/lib -lavcodec -lavfilter -lavformat -lavutil
 %.o : %.cc
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-all: compress compare_pgm
+all: compress compare_pgm decompress
 
 compress : compress.o rejigger.o
+	$(CC) -o $@ $^ $(LDFLAGS)
+
+decompress : decompress.o rejigger.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 compare_pgm : compare_pgm.o pgm_io.o

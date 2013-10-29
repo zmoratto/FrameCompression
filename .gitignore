@@ -1,5 +1,6 @@
 *.o
 *~
+decompress
 compress
 compare_pgm
 data

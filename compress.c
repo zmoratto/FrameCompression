@@ -114,8 +114,14 @@ int main( int argc, char ** argv ) {
   int samples_linesize;
   AVDictionary *dictionary = NULL;
 
-  static const char input_name[] = "data/m0000%03d.pgm";
   static const char output_name[] = "test.mkv";
+
+  // Check the input
+  if ( argc != 2 ) {
+    fprintf(stderr,"Missing input argument\n\t%s <input pgms,blah%%07d.pgm>\n",
+            argv[0] );
+    exit(1);
+  }
 
   // Register all formats and codecs
   av_register_all();
@@ -125,7 +131,7 @@ int main( int argc, char ** argv ) {
 
   // Open input file ... which is actually a stream of PGM files. This
   // should later be something that the user can provide.
-  if (avformat_open_input(&in_fmt_ctx, input_name, NULL, NULL) < 0) {
+  if (avformat_open_input(&in_fmt_ctx, argv[1], NULL, NULL) < 0) {
     fprintf(stderr, "Couldn't open input source");
     exit(1);
   }
@@ -309,6 +315,7 @@ int main( int argc, char ** argv ) {
         { // Write audio packet
           AVPacket out_pkt = { 0 };
           AVFrame *aframe = avcodec_alloc_frame();
+          aframe->pts = out_frame->pts;
           av_init_packet(&out_pkt);
           codec_ctx = out_audio_st->codec;
           for (i = 0; i < 32; i++ ) {
