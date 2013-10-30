@@ -116,17 +116,15 @@ int main( int argc, char ** argv ) {
   int samples_linesize;
   AVDictionary *dictionary = NULL;
 
-  static const char output_name[] = "test.mkv";
-
   // Check the input
-  if ( argc != 2 && argc != 3 ) {
-    fprintf(stderr,"Missing input argument\n\t%s <input pgms,blah%%07d.pgm> <optional qmax number>\n",
+  if ( argc != 3 && argc != 4 ) {
+    fprintf(stderr,"Missing input argument\n\t%s <input pgms,blah%%07d.pgm> <output.mkv> <optional qmax number>\n",
             argv[0] );
     exit(1);
   }
 
-  if ( argc == 3 ) {
-    sscanf(argv[2],"%d",&qmax_constant);
+  if ( argc == 4 ) {
+    sscanf(argv[3],"%d",&qmax_constant);
   }
 
   // Register all formats and codecs
@@ -171,7 +169,7 @@ int main( int argc, char ** argv ) {
 
   // OPENING OUTPUT
   // -----------------------------------------------------------------
-  avformat_alloc_output_context2(&out_fmt_ctx, NULL, "matroska", output_name );
+  avformat_alloc_output_context2(&out_fmt_ctx, NULL, "matroska", argv[2] );
   if ( !out_fmt_ctx ) {
     fprintf(stderr, "Faiil to create output context\n");
     exit(1);
@@ -239,7 +237,7 @@ int main( int argc, char ** argv ) {
   printf("Long name of format '%s'\n", out_fmt->long_name );
   printf("Acceptable extensions '%s'\n", out_fmt->extensions );
 
-  av_dump_format( out_fmt_ctx, 0, output_name, 1 );
+  av_dump_format( out_fmt_ctx, 0, argv[2], 1 );
 
   // PERFORM PROCESSING
   // -----------------------------------------------------------------
@@ -263,7 +261,7 @@ int main( int argc, char ** argv ) {
   in_pkt.size = 0;
 
   // OPen the output file, if needed
-  ret = avio_open(&out_fmt_ctx->pb, output_name, AVIO_FLAG_WRITE );
+  ret = avio_open(&out_fmt_ctx->pb, argv[2], AVIO_FLAG_WRITE );
   if ( ret < 0 ) {
     fprintf(stderr, "Error occurred when opening the output file: %s\n",
             av_err2str(ret));
