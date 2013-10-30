@@ -10,6 +10,7 @@ static int output_counter = 0;
 static int process_full_frame( uint8_t **video_storage, int *video_read_idx, int *video_write_idx,
                                uint8_t **audio_storage, int *audio_read_idx, int *audio_write_idx ) {
   char buffer[50];
+  uint8_t *storage = malloc( 640 * 896 );
 
   if ( *video_read_idx == *video_write_idx ||
        *audio_read_idx == *audio_write_idx ) {
@@ -18,24 +19,24 @@ static int process_full_frame( uint8_t **video_storage, int *video_read_idx, int
   }
 
   // Here is were we would rejigger things back to the original format. TODO
-
-  // Move the image data down 32 rows
-  memmove(video_storage[*video_read_idx]+32*640,
-          video_storage[*video_read_idx], (180+480)*640);
+  unjigger_small_frame( video_storage[*video_read_idx], 640,
+                        storage, 640 );
 
   // Paste in the audio data
-  memcpy(video_storage[*video_read_idx],
+  memcpy(storage,
          audio_storage[*audio_read_idx], 32 * 640);
 
   // Write the PGM!
   sprintf(buffer,"output%07d.pgm",output_counter);
-  pgm_save( video_storage[*video_read_idx], 640, 640, 896,
+  pgm_save( storage, 640, 640, 896,
             buffer );
 
   // Increment pointers
   output_counter++;
   (*video_read_idx) = ((*video_read_idx) + 1) % BUFFER_SIZE;
   (*audio_read_idx) = ((*audio_read_idx) + 1) % BUFFER_SIZE;
+
+  free(storage);
 
   return 0;
 }

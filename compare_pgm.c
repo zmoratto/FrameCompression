@@ -39,8 +39,12 @@ int main( int argc, char **argv ) {
       ptr = buf3 + y*xsize1 + x;
       if ( diff == 0 ) {
         *ptr = 0;
-      } else if ( diff < 3 ) {
+      } else if ( diff < 5 ) {
+        *ptr = 64;
+      } else if ( diff < 10 ) {
         *ptr = 128;
+      } else if ( diff < 15 ) {
+        *ptr = 192;
       } else {
         *ptr = 255;
       }

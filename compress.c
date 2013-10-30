@@ -295,7 +295,8 @@ int main( int argc, char ** argv ) {
         /* pgm_save(frame->data[0], frame->linesize[0], */
         /*          in_video_codec_ctx->width, */
         /*          in_video_codec_ctx->height, filename ); */
-        rejigger_small_frame( in_frame, out_frame );
+        rejigger_small_frame( in_frame->data[0], in_frame->linesize[0],
+                              out_frame->data[0], out_frame->linesize[0] );
 
         { // Write video frame
           AVPacket out_pkt = {0};

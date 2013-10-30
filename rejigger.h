@@ -3,8 +3,10 @@
 
 #include <libavutil/frame.h>
 
-void rejigger_small_frame(AVFrame *in_frame, AVFrame *out_frame);
+void rejigger_small_frame(uint8_t *in_data, int in_linesize,
+                          uint8_t *out_data, int out_linesize );
 
-void unjigger_small_frame(AVFrame *in_frame, AVFrame *out_frame);
+void unjigger_small_frame(uint8_t *in_data, int in_linesize,
+                          uint8_t *out_data, int out_linesize );
 
 #endif//__REJIGGER_H__
