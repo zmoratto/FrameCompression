@@ -198,7 +198,7 @@ int main( int argc, char ** argv ) {
         // compression. It was raw PCM.
         memcpy( audio_storage[audio_write_idx],
                 frame->data[0],
-                frame->nb_samples );
+                frame->nb_samples * 2 );
         audio_write_idx++;
         audio_write_idx %= BUFFER_SIZE;
       }
