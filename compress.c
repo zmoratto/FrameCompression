@@ -14,8 +14,6 @@
 #define WIDTH 640
 #define HEIGHT 896
 
-static int qmax_constant = 0;
-
 /* Add an output stream. */
 static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
                             enum AVCodecID codec_id)
@@ -51,8 +49,8 @@ static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
     c->codec_id = codec_id;
 
     c->bit_rate = 0;
-    c->qmin = 0;
-    c->qmax = qmax_constant;
+    c->qmin = -1;
+    c->qmax = -1;
     /* Resolution must be a multiple of two. */
     c->width    = WIDTH;
     c->height   = HEIGHT;
@@ -75,6 +73,7 @@ static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
       c->mb_decision = 2;
     }
     av_opt_set(c->priv_data, "preset", "veryslow", 0 );
+    av_opt_set_double(c->priv_data, "crf", 0, 0 );
     break;
   default:
     break;
@@ -117,14 +116,10 @@ int main( int argc, char ** argv ) {
   AVDictionary *dictionary = NULL;
 
   // Check the input
-  if ( argc != 3 && argc != 4 ) {
-    fprintf(stderr,"Missing input argument\n\t%s <input pgms,blah%%07d.pgm> <output.mkv> <optional qmax number>\n",
+  if ( argc != 4 ) {
+    fprintf(stderr,"Missing input argument\n\t%s <input pgms,blah%%07d.pgm> <output.mkv> <crf number>\n",
             argv[0] );
     exit(1);
-  }
-
-  if ( argc == 4 ) {
-    sscanf(argv[3],"%d",&qmax_constant);
   }
 
   // Register all formats and codecs
@@ -184,7 +179,7 @@ int main( int argc, char ** argv ) {
   out_audio_st = add_stream( out_fmt_ctx, &out_audio_codec, out_fmt->audio_codec );
 
   // Open Video
-  av_dict_set(&dictionary, "crf", "100", 0);
+  av_dict_set(&dictionary, "crf", argv[3], 0);
   av_dict_set(&dictionary, "threads", "auto", 0);
   codec_ctx = out_video_st->codec;
   ret = avcodec_open2(codec_ctx, out_video_codec, &dictionary );
