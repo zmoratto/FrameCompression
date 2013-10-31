@@ -32,18 +32,20 @@ You'll notice that the MD5Sum don't match. That is because comment characters, '
 
 ## Compression Comparison
 
-This is a comparison using 800 frames of small 640x896 PGMs. - 10/30/13
+This is a comparison using 800 frames of small 640x896 PGMs. - 10/31/13
 
+<pre>
 RAW: 441M
 TAR BZ2: 131M
 LOSSLESS: 102M
-THIS Q=0: 136M
-THIS Q=10: 94M
-THIS Q=20: 43M
-THIS Q=30: 22M
-THIS Q=40: 18M
-THIS Q=50: 17M
-THIS Q=60: 17M
-THIS Q=70: 17M
+FLAC/Lossy H264 Q=0: 108M
+FLAC/Lossy H264 Q=10: 110M
+FLAC/Lossy H264 Q=20: 56M
+FLAC/Lossy H264 Q=30: 19M
+FLAC/Lossy H264 Q=40: 11M
+FLAC/Lossy H264 Q=50: 9.3M
+FLAC/Lossy H264 Q=60: 9.2M
+FLAC/Lossy H264 Q=70: 9.2M
+</pre>
 
 I'm not really sure how to pass parameters correctly to Libx264 via FFMpeg. Working on it.
