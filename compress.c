@@ -39,9 +39,9 @@ static AVStream *add_stream(AVFormatContext *oc, AVCodec **codec,
 
   switch ((*codec)->type) {
   case AVMEDIA_TYPE_AUDIO:
-    c->sample_fmt  = AV_SAMPLE_FMT_U8;
+    c->sample_fmt  = AV_SAMPLE_FMT_S16;
     c->bit_rate    = 0;
-    c->sample_rate = 614400; // Enough to hold 20kb coming out at 30 hz
+    c->sample_rate = 307200; // Enough to hold 20kb coming out at 30 hz
     c->channels    = 1;
     break;
 
@@ -170,7 +170,7 @@ int main( int argc, char ** argv ) {
     exit(1);
   }
   out_fmt = out_fmt_ctx->oformat;
-  out_fmt->audio_codec = AV_CODEC_ID_PCM_U8; // Uncompressed 8 bit audio
+  out_fmt->audio_codec = AV_CODEC_ID_FLAC; // Lossless compressed 8 bit audio
 
   // Attach output video stream
   out_video_st = add_stream( out_fmt_ctx, &out_video_codec, out_fmt->video_codec );
@@ -321,7 +321,7 @@ int main( int argc, char ** argv ) {
           for (i = 0; i < 32; i++ ) {
             memcpy(samples_data[0]+i*640,in_frame->data[0] + i * in_frame->linesize[0], 640);
           }
-          aframe->nb_samples = 32 * 640;
+          aframe->nb_samples = 32 * 320;
           avcodec_fill_audio_frame(aframe, codec_ctx->channels,
                                    codec_ctx->sample_fmt, samples_data[0], samples_linesize, 0 );
           ret = avcodec_encode_audio2(codec_ctx, &out_pkt, aframe, &got_packet);
