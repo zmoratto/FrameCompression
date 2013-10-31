@@ -38,6 +38,7 @@ This is a comparison using 800 frames of small 640x896 PGMs. - 10/31/13
 RAW: 441M
 TAR BZ2: 131M
 LOSSLESS: 102M
+------------ My Code Below -----
 FLAC/LossLess H264 Q=0: 108M
 FLAC/Lossy H264 Q=10: 110M
 FLAC/Lossy H264 Q=20: 56M
