@@ -49,4 +49,3 @@ FLAC/Lossy H264 Q=60: 9.2M
 FLAC/Lossy H264 Q=70: 9.2M
 </pre>
 
-I'm not really sure how to pass parameters correctly to Libx264 via FFMpeg. Working on it.
