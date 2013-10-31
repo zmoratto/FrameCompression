@@ -3,6 +3,12 @@ FrameCompression
 
 Tools to compress/decompress frames that have metadata in the top 32kb that can't be ruined.
 
+## TODO
+
+- Make work for superframe carrying narrow angle camera data.
+- Make code not look like a hack job of ffmpeg examples. (That is what I did.)
+- Possibly investigate bleeding the depth image data into the U & V channels. Those channels have a lower resolution so only put MSB inside those channels.
+
 ## How to build
 
 You'll need FFMpeg built against libx264. You'll then need to edit the Makefile appropriately.
