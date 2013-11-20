@@ -1,7 +1,7 @@
 #ifndef __REJIGGER_H__
 #define __REJIGGER_H__
 
-#include <libavutil/frame.h>
+#include <stdint.h>
 
 void rejigger_small_frame(uint8_t *in_data, int in_linesize,
                           uint8_t *out_data, int out_linesize );

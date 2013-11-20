@@ -5,6 +5,7 @@
 #include <libavutil/mathematics.h>
 #include <libavutil/imgutils.h>
 #include <libavutil/timestamp.h>
+#include <libavutil/samplefmt.h>
 #include <libavformat/avformat.h>
 
 #include <rejigger.h>
@@ -111,8 +112,7 @@ int main( int argc, char ** argv ) {
   AVFrame *in_frame = NULL, *out_frame = NULL;
   AVPacket in_pkt;
   AVCodecContext *codec_ctx = NULL;
-  uint8_t **samples_data;
-  int samples_linesize;
+  uint8_t *samples_data = NULL;
   AVDictionary *dictionary = NULL;
 
   // Check the input
@@ -217,14 +217,12 @@ int main( int argc, char ** argv ) {
   }
 
   // Allocate space for samples
-  ret = av_samples_alloc_array_and_samples(&samples_data, &samples_linesize, codec_ctx->channels,
-                                           20 * 1024 / 2, codec_ctx->sample_fmt, 0 );
+  samples_data = av_malloc( 20 * 1024 );
+
   if ( ret < 0 ) {
     fprintf(stderr, "Could not allocate source samples\n" );
     exit(1);
   }
-  printf("Buffer size is %d\n",
-         av_samples_get_buffer_size(&samples_linesize, codec_ctx->channels, 20 * 1024 / 2, codec_ctx->sample_fmt, 0 ) );
 
   // Initialize the output codecs for audio and video
   printf("Recommended video codec name is %s\n", avcodec_get_name(out_fmt->video_codec) );
@@ -319,12 +317,12 @@ int main( int argc, char ** argv ) {
           av_init_packet(&out_pkt);
           codec_ctx = out_audio_st->codec;
           for (i = 0; i < 32; i++ ) {
-            memcpy(samples_data[0]+i*640,
-                   in_frame->data[0] + i * in_frame->linesize[0], 640);
+            memcpy(samples_data+i*WIDTH,
+                   in_frame->data[0] + i * in_frame->linesize[0], WIDTH);
           }
           aframe->nb_samples = 20 * 1024 / 2;
           avcodec_fill_audio_frame(aframe, codec_ctx->channels,
-                                   codec_ctx->sample_fmt, samples_data[0], samples_linesize, 0 );
+                                   codec_ctx->sample_fmt, samples_data, 20 * 1024, 1 );
           ret = avcodec_encode_audio2(codec_ctx, &out_pkt, aframe, &got_packet);
           if ( ret < 0 ) {
             fprintf(stderr, "Error encoding audio frame: %s\n", av_err2str(ret));
@@ -391,7 +389,7 @@ int main( int argc, char ** argv ) {
   av_free(out_frame);
   // Close output audio
   avcodec_close(out_audio_st->codec);
-  av_free(samples_data[0]);
+  av_free(samples_data);
   // Close output file
   avio_close(out_fmt_ctx->pb);
   // Close the output file context
